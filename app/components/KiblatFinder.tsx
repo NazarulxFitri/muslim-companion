@@ -8,7 +8,8 @@ import {
   Info,
   Navigation,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from "lucide-react";
 
 // Fallback coordinates for Malaysian states (approximate central coordinates or capitals)
@@ -129,10 +130,10 @@ export default function KiblatFinder() {
       }
       setMounted(true);
 
-      // Check if browser supports device orientation
+      // Check if browser supports device orientation permission (e.g. iOS Safari)
       if (typeof window !== "undefined") {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window);
-        if (isIOS && typeof DeviceOrientationEvent !== "undefined" && "requestPermission" in DeviceOrientationEvent) {
+        if (typeof DeviceOrientationEvent !== "undefined" && 
+            typeof (DeviceOrientationEvent as any).requestPermission === "function") {
           setCompassPermissionNeeded(true);
         }
       }
@@ -253,6 +254,20 @@ export default function KiblatFinder() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  // Handle manual state coordinate selection
+  const handleStateChange = (stateName: string) => {
+    if (STATE_COORDINATES[stateName]) {
+      const coords = STATE_COORDINATES[stateName];
+      setLocation({
+        lat: coords.lat,
+        lon: coords.lon,
+        source: "Zon Waktu",
+        name: `${coords.name} (${stateName})`
+      });
+      localStorage.setItem("solat-state", stateName);
+    }
   };
 
 
@@ -447,6 +462,35 @@ export default function KiblatFinder() {
                   </div>
                 </div>
               </div>
+
+              {/* Manual Location Selection Dropdown */}
+              <div className="border-t border-stone-100 dark:border-stone-800 pt-4">
+                <label className="text-xs text-stone-500 dark:text-stone-400 font-bold mb-2 uppercase tracking-wider flex items-center gap-1.5">
+                  Pilih Negeri secara Manual
+                </label>
+                <div className="relative">
+                  <select
+                    value={
+                      Object.keys(STATE_COORDINATES).find(
+                        (key) => Math.abs(STATE_COORDINATES[key].lat - location.lat) < 0.0001 && Math.abs(STATE_COORDINATES[key].lon - location.lon) < 0.0001
+                      ) || ""
+                    }
+                    onChange={(e) => handleStateChange(e.target.value)}
+                    className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-750 rounded-xl px-4 py-2.5 text-stone-800 dark:text-stone-100 text-xs font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none appearance-none cursor-pointer pr-10"
+                  >
+                    <option value="" disabled>-- Pilih Negeri --</option>
+                    {Object.keys(STATE_COORDINATES).sort().map((state) => (
+                      <option key={state} value={state}>
+                        {state} ({STATE_COORDINATES[state].name})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-stone-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <p className="text-[10px] text-stone-400 dark:text-stone-500 mt-1.5 leading-normal">
+                  Jika GPS peranti anda disekat atau tidak aktif, anda boleh memilih negeri secara manual untuk menetapkan kedudukan kompas.
+                </p>
+              </div>
             </div>
 
             {/* GPS Trigger Button */}
@@ -465,9 +509,16 @@ export default function KiblatFinder() {
               </button>
               
               {gpsError && (
-                <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs font-semibold p-2 bg-red-500/5 border border-red-500/20 rounded-lg">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>{gpsError}</span>
+                <div className="flex flex-col gap-1 text-red-600 dark:text-red-400 text-xs p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Akses Lokasi Disekat / Ralat</span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-normal mt-0.5">
+                    {gpsError === "Akses GPS ditolak oleh pengguna." 
+                      ? "Akses GPS ditolak. Sila benarkan akses lokasi dalam tetapan pelayar anda, atau pilih negeri secara manual menggunakan menu di atas."
+                      : `${gpsError} Sila gunakan pilihan negeri secara manual di atas.`}
+                  </p>
                 </div>
               )}
             </div>
