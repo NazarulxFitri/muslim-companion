@@ -7,9 +7,88 @@ import {
   Calendar, 
   ChevronDown, 
   RefreshCw,
-  Info
+  Info,
+  Navigation
 } from "lucide-react";
 import zonesDataRaw from "../data/zones.json";
+
+// Approximate coordinates for the central/main city of each JAKIM zone code
+const ZONE_COORDINATES: Record<string, { lat: number; lon: number }> = {
+  // Johor
+  "JHR01": { lat: 2.4481, lon: 104.5244 },
+  "JHR02": { lat: 1.4927, lon: 103.7414 },
+  "JHR03": { lat: 2.0251, lon: 103.3324 },
+  "JHR04": { lat: 1.8548, lon: 102.9325 },
+  // Kedah
+  "KDH01": { lat: 6.1210, lon: 100.3601 },
+  "KDH02": { lat: 5.6433, lon: 100.4905 },
+  "KDH03": { lat: 6.2524, lon: 100.6067 },
+  "KDH04": { lat: 5.6766, lon: 100.9189 },
+  "KDH05": { lat: 5.3708, lon: 100.5547 },
+  "KDH06": { lat: 6.3500, lon: 99.8000 },
+  "KDH07": { lat: 5.7872, lon: 100.4353 },
+  // Kelantan
+  "KTN01": { lat: 6.1254, lon: 102.2386 },
+  "KTN02": { lat: 4.8823, lon: 101.9644 },
+  // Melaka
+  "MLK01": { lat: 2.1896, lon: 102.2501 },
+  // Negeri Sembilan
+  "NGS01": { lat: 2.4794, lon: 102.2302 },
+  "NGS02": { lat: 2.7389, lon: 102.2486 },
+  "NGS03": { lat: 2.7258, lon: 101.9424 },
+  // Pahang
+  "PHG01": { lat: 2.8125, lon: 104.1681 },
+  "PHG02": { lat: 3.8077, lon: 103.3260 },
+  "PHG03": { lat: 3.4483, lon: 102.4168 },
+  "PHG04": { lat: 3.5225, lon: 101.9144 },
+  "PHG05": { lat: 3.3225, lon: 101.8594 },
+  "PHG06": { lat: 4.4721, lon: 101.3801 },
+  "PHG07": { lat: 2.7981, lon: 103.4820 },
+  // Perlis
+  "PLS01": { lat: 6.4449, lon: 100.1986 },
+  // Pulau Pinang
+  "PNG01": { lat: 5.4141, lon: 100.3288 },
+  // Perak
+  "PRK01": { lat: 4.1983, lon: 101.2589 },
+  "PRK02": { lat: 4.5921, lon: 101.0901 },
+  "PRK03": { lat: 5.4267, lon: 101.1292 },
+  "PRK04": { lat: 5.5500, lon: 101.3500 },
+  "PRK05": { lat: 4.0259, lon: 101.0213 },
+  "PRK06": { lat: 4.8500, lon: 100.7333 },
+  "PRK07": { lat: 4.8617, lon: 100.7925 },
+  // Sabah
+  "SBH01": { lat: 5.8394, lon: 118.1172 },
+  "SBH02": { lat: 5.8118, lon: 117.3005 },
+  "SBH03": { lat: 5.0268, lon: 118.3277 },
+  "SBH04": { lat: 4.2442, lon: 117.8912 },
+  "SBH05": { lat: 6.8837, lon: 116.8203 },
+  "SBH06": { lat: 6.0753, lon: 116.5583 },
+  "SBH07": { lat: 5.9804, lon: 116.0735 },
+  "SBH08": { lat: 5.3378, lon: 116.1594 },
+  "SBH09": { lat: 5.3473, lon: 115.7455 },
+  // Selangor
+  "SGR01": { lat: 3.0738, lon: 101.5183 },
+  "SGR02": { lat: 3.3408, lon: 101.2536 },
+  "SGR03": { lat: 3.0449, lon: 101.4452 },
+  // Sarawak
+  "SWK01": { lat: 4.7500, lon: 115.0000 },
+  "SWK02": { lat: 4.3995, lon: 113.9914 },
+  "SWK03": { lat: 3.1750, lon: 113.0420 },
+  "SWK04": { lat: 2.2873, lon: 111.8305 },
+  "SWK05": { lat: 2.1167, lon: 111.5167 },
+  "SWK06": { lat: 1.2333, lon: 111.4500 },
+  "SWK07": { lat: 1.4300, lon: 110.4900 },
+  "SWK08": { lat: 1.5533, lon: 110.3592 },
+  "SWK09": { lat: 1.3700, lon: 110.6000 },
+  // Terengganu
+  "TRG01": { lat: 5.3302, lon: 103.1408 },
+  "TRG02": { lat: 5.7410, lon: 102.5535 },
+  "TRG03": { lat: 5.0863, lon: 102.9469 },
+  "TRG04": { lat: 4.2183, lon: 103.4244 },
+  // Wilayah Persekutuan
+  "WLY01": { lat: 3.1390, lon: 101.6869 },
+  "WLY02": { lat: 5.2831, lon: 115.2443 }
+};
 
 // Cast JSON data to typed dictionary
 const zonesData = zonesDataRaw as Record<string, Record<string, string>>;
@@ -54,6 +133,10 @@ export default function PrayerTimes() {
   // Time & View
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [viewMode, setViewMode] = useState<"today" | "month">("today");
+
+  // Geolocation lookup state
+  const [locLoading, setLocLoading] = useState(false);
+  const [locError, setLocError] = useState<string | null>(null);
 
   // Load initial settings from localStorage on mount
   useEffect(() => {
@@ -163,6 +246,64 @@ export default function PrayerTimes() {
       const firstZone = Object.keys(zones)[0];
       setSelectedZone(firstZone);
     }
+  };
+
+  // Detect location and map to the closest JAKIM zone
+  const detectLocationZone = () => {
+    setLocLoading(true);
+    setLocError(null);
+
+    if (!navigator.geolocation) {
+      setLocError("GPS tidak disokong pelayar.");
+      setLocLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+
+        let nearestZone = "";
+        let minDistance = Infinity;
+
+        for (const [zone, coords] of Object.entries(ZONE_COORDINATES)) {
+          // Simple squared Euclidean distance for local comparisons
+          const dist = Math.pow(coords.lat - userLat, 2) + Math.pow(coords.lon - userLon, 2);
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearestZone = zone;
+          }
+        }
+
+        if (nearestZone) {
+          let detectedState = "";
+          for (const [stateName, zones] of Object.entries(zonesData)) {
+            if (zones[nearestZone]) {
+              detectedState = stateName;
+              break;
+            }
+          }
+
+          if (detectedState) {
+            setSelectedState(detectedState);
+            setSelectedZone(nearestZone);
+            localStorage.setItem("solat-state", detectedState);
+            localStorage.setItem("solat-zone", nearestZone);
+          }
+        }
+        setLocLoading(false);
+      },
+      (err) => {
+        let msg = "Gagal mengesan lokasi.";
+        if (err.code === 1) msg = "Akses GPS disekat.";
+        else if (err.code === 2) msg = "Lokasi tidak tersedia.";
+        else if (err.code === 3) msg = "Tamat masa carian.";
+        setLocError(msg);
+        setLocLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
   };
 
   // Helper to format date
@@ -355,6 +496,27 @@ export default function PrayerTimes() {
               <div className="text-amber-400 font-mono font-bold text-lg">{selectedZone}</div>
               <div className="text-white text-sm font-medium line-clamp-2 mt-1 leading-snug">{zoneLabel}</div>
               <div className="text-stone-400 text-xs mt-2">{selectedState}</div>
+            </div>
+            
+            {/* Auto GPS detector for prayer times */}
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <button
+                onClick={detectLocationZone}
+                disabled={locLoading}
+                className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-500/50 text-stone-950 text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-[0.98]"
+              >
+                {locLoading ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Navigation className="w-3.5 h-3.5" />
+                )}
+                {locLoading ? "Mengesan GPS..." : "Kesan Zon Saya (GPS)"}
+              </button>
+              {locError && (
+                <div className="text-[10px] text-red-400 font-semibold mt-1.5 leading-tight text-center">
+                  {locError}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -595,14 +757,83 @@ export default function PrayerTimes() {
         </div>
       )}
 
-      {/* Decorative Footer info */}
-      <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-stone-400 dark:text-stone-500 border-t border-stone-200 dark:border-stone-800 pt-6">
-        <div className="flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          <span>Waktu solat dikemaskini dari pangkalan data JAKIM.</span>
+      {/* Related Content & SEO section for Prayer Times */}
+      <div className="mt-16 border-t border-stone-200 dark:border-stone-850 pt-12 space-y-12">
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-emerald-600" />
+              Zon Waktu JAKIM
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Malaysia dibahagikan kepada beberapa zon waktu solat yang diselaraskan oleh Jabatan Kemajuan Islam Malaysia (JAKIM). Penetapan zon ini memastikan kejituan dan ketepatan masa azan berkumandang di setiap daerah dan mukim mengikut pergerakan matahari.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-amber-500" />
+              Imsak & Syuruk
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Waktu **Imsak** adalah tempoh berwaspada sekitar 10 minit sebelum masuk waktu Subuh (terutamanya untuk menamatkan sahur). Manakala **Syuruk** menandakan berakhirnya waktu Subuh apabila matahari mula terbit di ufuk Timur, dan bermulanya waktu larangan solat sunat seketika sebelum masuk waktu Dhuha.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-teal-600" />
+              Pengiraan Astronomi
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Waktu solat dihitung menggunakan kedudukan koordinat geografi (latitud dan longitud) serta deklinasi matahari. Kaedah pengiraan waktu solat di Malaysia disahkan dan dikawal selia secara rasmi oleh Panel Pakar Falak JAKIM dan Jabatan Mufti Negeri.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span>Muslim Companion &copy; {new Date().getFullYear()}</span>
+
+        {/* Informative FAQ */}
+        <div className="bg-white dark:bg-stone-900/30 p-6 md:p-8 rounded-3xl border border-stone-100 dark:border-stone-850/60">
+          <h2 className="text-lg md:text-xl font-serif font-bold text-stone-850 dark:text-stone-100 mb-6 text-center md:text-left">
+            Panduan & Soalan Lazim Waktu Solat
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Bagaimanakah aplikasi ini mengemas kini waktu solat?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Aplikasi ini membuat sambungan langsung dengan API waktu solat rasmi yang merujuk jadual takwim keluaran JAKIM Malaysia. Data disimpan dalam memori simpanan peranti anda (*caching*) untuk membolehkan akses pantas dan menjimatkan data internet.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Mengapakah waktu solat berubah sedikit dari hari ke hari?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Perubahan waktu solat dipengaruhi oleh kecondongan paksi bumi semasa mengorbit matahari, menyebabkan waktu tengah hari (istiwa), matahari terbit, dan matahari terbenam berganjak beberapa saat atau minit setiap hari.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Apakah perbezaan waktu antara syuruk dan dhuha?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Syuruk ialah waktu matahari mula terbit (berakhirnya Subuh). Waktu Dhuha pula bermula apabila matahari telah naik setinggi kadar segalah (kira-kira 20 minit selepas syuruk) dan berterusan sehingga sebelum masuk waktu Zohor.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Adakah jadual waktu solat bulanan dipaparkan?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Ya, anda boleh menukar mod paparan daripada &quot;Harian&quot; kepada &quot;Bulanan&quot; dengan menekan butang di sebelah pilihan zon. Ini membolehkan anda melihat keseluruhan takwim solat bagi bulan semasa.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

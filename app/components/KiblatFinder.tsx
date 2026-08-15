@@ -303,6 +303,60 @@ export default function KiblatFinder() {
         </div>
       </div>
 
+      {/* Permission & Sensor Request Banner (visible immediately when needed) */}
+      {(location.source !== "GPS Peranti" || compassPermissionNeeded) && (
+        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-3xl p-6 mb-8 shadow-md">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-amber-500 font-bold text-sm uppercase tracking-wider mb-2">
+                <Info className="w-5 h-5 shrink-0 animate-pulse" />
+                <span>Penyelarasan Kompas & Geolocation</span>
+              </div>
+              <h2 className="text-stone-850 dark:text-stone-100 font-bold text-base md:text-lg">
+                Aktifkan penderia peranti untuk ketepatan arah kiblat yang tinggi
+              </h2>
+              <p className="text-stone-500 dark:text-stone-400 text-xs mt-1.5 leading-relaxed max-w-2xl">
+                Aplikasi ini memerlukan akses **GPS** untuk menentukan koordinat anda dan **sensor orientasi/gerakan** (pada telefon) untuk mencari arah Utara fizikal secara automatik. Sila benarkan akses menggunakan butang di bawah.
+              </p>
+              {gpsError && (
+                <p className="text-red-500 dark:text-red-400 font-semibold text-xs mt-2 leading-relaxed">
+                  {gpsError === "Akses GPS ditolak oleh pengguna." 
+                    ? "Akses GPS ditolak oleh pengguna. Sila benarkan akses lokasi dalam tetapan pelayar anda, atau anda boleh memilih negeri secara manual pada kad rujukan koordinat."
+                    : gpsError}
+                </p>
+              )}
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch md:items-center shrink-0">
+              {compassPermissionNeeded && (
+                <button
+                  onClick={requestCompassPermission}
+                  className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold py-3 px-5 rounded-xl text-xs md:text-sm uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <Compass className="w-4 h-4 shrink-0" />
+                  Aktifkan Kompas Automatik
+                </button>
+              )}
+              
+              {location.source !== "GPS Peranti" && (
+                <button
+                  onClick={requestGps}
+                  disabled={gpsLoading}
+                  className="bg-emerald-900 hover:bg-emerald-850 text-white font-semibold py-3 px-5 rounded-xl text-xs md:text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 disabled:bg-emerald-900/50"
+                >
+                  {gpsLoading ? (
+                    <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
+                  ) : (
+                    <Navigation className="w-4 h-4 shrink-0" />
+                  )}
+                  {gpsLoading ? "Mengesan Geolocation..." : "Kesan Kedudukan GPS Saya"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Grid: Compass vs Controls */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
         
@@ -583,6 +637,86 @@ export default function KiblatFinder() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Related Content & SEO FAQ Section */}
+      <div className="mt-16 border-t border-stone-200 dark:border-stone-850 pt-12 space-y-12">
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-amber-500" />
+              Cara Penggunaan
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Baringkan peranti anda secara rata (mendatar) di atas tapak tangan. Pusingkan badan anda perlahan-lahan mengikut putaran kompas sehingga penunjuk Kaabah emas sejajar dengan anak panah hijau di bahagian atas. Peranti akan bergetar pendek sebagai petanda arah kiblat telah sejajar.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-emerald-600" />
+              Kalibrasi Penderia
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Sekiranya jarum kompas tidak stabil atau menunjukkan arah yang salah, penderia peranti anda mungkin memerlukan kalibrasi. Pegang peranti anda dan gerakkannya membentuk corak nombor lapan (figure-8) di udara beberapa kali untuk menetapkan semula penderia magnetik.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
+            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-5 rounded bg-teal-600" />
+              Gangguan Magnetik
+            </h3>
+            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
+              Peralatan elektronik, struktur besi konkrit, pemancar isyarat, malah kerangka telefon yang mengandungi logam atau magnet boleh mengganggu penderia magnetometer telefon anda. Sentiasa gunakan pencari kiblat jauh daripada sumber-sumber gangguan tersebut.
+            </p>
+          </div>
+        </div>
+
+        {/* FAQs */}
+        <div className="bg-white dark:bg-stone-900/30 p-6 md:p-8 rounded-3xl border border-stone-100 dark:border-stone-850/60">
+          <h2 className="text-lg md:text-xl font-serif font-bold text-stone-850 dark:text-stone-100 mb-6 text-center md:text-left">
+            Soalan Lazim Mengenai Kiblat & Kompas
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Apakah formula pengiraan arah kiblat yang digunakan?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Aplikasi ini menggunakan formula trigonometri sfere (Haversine dan bearing sudut) untuk mengira sudut bearing Kaabah (21.4225&deg; N, 39.8262&deg; E) dari koordinat lokasi semasa anda.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Mengapa saya perlu membenarkan akses kompas & lokasi?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Akses lokasi diperlukan untuk menentukan kedudukan koordinat anda bagi mengira sudut bearing kiblat yang betul. Akses gerakan/orientasi pula membolehkan kompas maya berputar mengikut arah fizikal telefon anda secara real-time.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Adakah kompas ini boleh digunakan pada komputer desktop?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Komputer desktop amnya tidak mempunyai penderia orientasi gerakan (gyroscope/magnetometer). Untuk desktop, anda boleh menggunakan bar kawalan pusingan kompas manual bagi menyelaraskan kompas mengikut arah Utara fizikal rumah anda.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
+                Apakah arah kiblat bagi negeri-negeri di Malaysia?
+              </h4>
+              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
+                Secara amnya, sudut arah kiblat dari Malaysia berada dalam lingkungan 291&deg; hingga 293&deg; dari arah Utara (atau sekitar arah Barat Laut), bergantung kepada kedudukan geografi negeri anda.
+              </p>
+            </div>
           </div>
         </div>
       </div>
