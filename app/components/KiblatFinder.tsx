@@ -240,6 +240,19 @@ export default function KiblatFinder() {
     setGpsLoading(true);
     if (!silent) setGpsError(null);
 
+    const isInsecureContext = typeof window !== "undefined" && 
+      window.location.protocol === "http:" && 
+      window.location.hostname !== "localhost" && 
+      window.location.hostname !== "127.0.0.1";
+
+    if (isInsecureContext) {
+      if (!silent) {
+        setGpsError("Akses GPS memerlukan sambungan selamat (HTTPS) pada peranti mudah alih. Sila tukar ke HTTPS untuk menguji.");
+      }
+      setGpsLoading(false);
+      return;
+    }
+
     if (!navigator.geolocation) {
       if (!silent) setGpsError("Pencari GPS tidak disokong oleh pelayar anda.");
       setGpsLoading(false);

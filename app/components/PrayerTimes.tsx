@@ -266,6 +266,19 @@ export default function PrayerTimes() {
     setLocLoading(true);
     if (!silent) setLocError(null);
 
+    const isInsecureContext = typeof window !== "undefined" && 
+      window.location.protocol === "http:" && 
+      window.location.hostname !== "localhost" && 
+      window.location.hostname !== "127.0.0.1";
+
+    if (isInsecureContext) {
+      if (!silent) {
+        setLocError("Akses GPS memerlukan sambungan selamat (HTTPS) pada peranti mudah alih. Sila tukar ke HTTPS untuk menguji.");
+      }
+      setLocLoading(false);
+      return;
+    }
+
     if (!navigator.geolocation) {
       if (!silent) setLocError("GPS tidak disokong pelayar.");
       setLocLoading(false);
@@ -551,27 +564,6 @@ export default function PrayerTimes() {
               <div className="text-amber-400 font-mono font-bold text-lg">{selectedZone}</div>
               <div className="text-white text-sm font-medium line-clamp-2 mt-1 leading-snug">{zoneLabel}</div>
               <div className="text-stone-400 text-xs mt-2">{selectedState}</div>
-            </div>
-            
-            {/* Auto GPS detector for prayer times */}
-            <div className="mt-4 border-t border-white/10 pt-4">
-              <button
-                onClick={() => detectLocationZone(false)}
-                disabled={locLoading}
-                className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-500/50 text-stone-950 text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-[0.98]"
-              >
-                {locLoading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Navigation className="w-3.5 h-3.5" />
-                )}
-                {locLoading ? "Mengesan GPS..." : "Kesan Zon Saya (GPS)"}
-              </button>
-              {locError && (
-                <div className="text-[10px] text-red-400 font-semibold mt-1.5 leading-tight text-center">
-                  {locError}
-                </div>
-              )}
             </div>
           </div>
         </div>
