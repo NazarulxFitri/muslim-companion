@@ -170,6 +170,15 @@ export default function PrayerTimes() {
     return () => clearInterval(timer);
   }, [mounted]);
 
+  // Auto-detect location on mount if GPS is enabled/not set yet
+  useEffect(() => {
+    if (!mounted) return;
+    const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
+    if (gpsEnabledSetting !== "false") {
+      detectLocationZone();
+    }
+  }, [mounted]);
+
   // Fetch prayer times whenever selectedZone changes
   useEffect(() => {
     if (!mounted) return;
@@ -245,6 +254,7 @@ export default function PrayerTimes() {
     if (zones) {
       const firstZone = Object.keys(zones)[0];
       setSelectedZone(firstZone);
+      localStorage.setItem("solat-gps-enabled", "false");
     }
   };
 
@@ -290,13 +300,17 @@ export default function PrayerTimes() {
             setSelectedZone(nearestZone);
             localStorage.setItem("solat-state", detectedState);
             localStorage.setItem("solat-zone", nearestZone);
+            localStorage.setItem("solat-gps-enabled", "true");
           }
         }
         setLocLoading(false);
       },
       (err) => {
         let msg = "Gagal mengesan lokasi.";
-        if (err.code === 1) msg = "Akses GPS disekat.";
+        if (err.code === 1) {
+          msg = "Akses GPS disekat. Sila ke Tetapan > Privasi > Perkhidmatan Lokasi > Tapak Web Safari (Pilih 'Semasa Menggunakan'), atau ketuk 'aA' > Tetapan Tapak Web > Kebenarkan Lokasi.";
+          localStorage.setItem("solat-gps-enabled", "false");
+        }
         else if (err.code === 2) msg = "Lokasi tidak tersedia.";
         else if (err.code === 3) msg = "Tamat masa carian.";
         setLocError(msg);
@@ -551,7 +565,10 @@ export default function PrayerTimes() {
           <div className="relative">
             <select
               value={selectedZone}
-              onChange={(e) => setSelectedZone(e.target.value)}
+              onChange={(e) => {
+                setSelectedZone(e.target.value);
+                localStorage.setItem("solat-gps-enabled", "false");
+              }}
               className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl px-4 py-3 text-stone-800 dark:text-stone-100 font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none appearance-none cursor-pointer pr-10"
             >
               {Object.entries(zonesData[selectedState] || {}).map(([code, desc]) => (

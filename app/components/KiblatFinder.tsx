@@ -188,6 +188,15 @@ export default function KiblatFinder() {
     };
   }, [mounted, compassPermissionNeeded]);
 
+  // Auto-detect location on mount if GPS is enabled/not set yet
+  useEffect(() => {
+    if (!mounted) return;
+    const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
+    if (gpsEnabledSetting !== "false") {
+      requestGps();
+    }
+  }, [mounted]);
+
   if (!mounted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -224,7 +233,7 @@ export default function KiblatFinder() {
   };
 
   // Get current high accuracy Geolocation
-  const requestGps = () => {
+  function requestGps() {
     setGpsLoading(true);
     setGpsError(null);
 
@@ -242,19 +251,25 @@ export default function KiblatFinder() {
           source: "GPS Peranti",
           name: "Lokasi GPS Anda"
         });
+        localStorage.setItem("solat-gps-enabled", "true");
         setGpsLoading(false);
       },
       (err) => {
         let msg = "Ralat Geolocation tidak diketahui.";
-        if (err.code === 1) msg = "Akses GPS ditolak oleh pengguna.";
-        else if (err.code === 2) msg = "Kedudukan GPS tidak tersedia.";
-        else if (err.code === 3) msg = "Rangkaian tamat masa ketika mencari lokasi.";
+        if (err.code === 1) {
+          msg = "Akses GPS disekat. Sila ke Tetapan > Privasi > Perkhidmatan Lokasi > Tapak Web Safari (Pilih 'Semasa Menggunakan'), atau ketuk 'aA' > Tetapan Tapak Web > Kebenarkan Lokasi.";
+          localStorage.setItem("solat-gps-enabled", "false");
+        } else if (err.code === 2) {
+          msg = "Kedudukan GPS tidak tersedia.";
+        } else if (err.code === 3) {
+          msg = "Rangkaian tamat masa ketika mencari lokasi.";
+        }
         setGpsError(msg);
         setGpsLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
-  };
+  }
 
   // Handle manual state coordinate selection
   const handleStateChange = (stateName: string) => {
@@ -267,8 +282,11 @@ export default function KiblatFinder() {
         name: `${coords.name} (${stateName})`
       });
       localStorage.setItem("solat-state", stateName);
+      localStorage.setItem("solat-gps-enabled", "false");
     }
   };
+
+
 
 
 
@@ -278,448 +296,145 @@ export default function KiblatFinder() {
     : "border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-lg";
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8">
-      {/* Visual Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 p-6 md:p-8 text-white shadow-2xl mb-8 border border-amber-500/20">
-        <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
-             style={{ 
-               backgroundImage: 'radial-gradient(circle_at_center, rgba(212,175,55,0.25) 2px, transparent 2px)', 
-               backgroundSize: '24px 24px' 
-             }} 
-        />
-        <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <span className="text-amber-400 font-semibold tracking-wide text-xs md:text-sm flex items-center gap-1">
-              <Navigation className="w-4 h-4 animate-pulse" />
-              Arah Kiblat
-            </span>
-            <h1 className="text-2xl md:text-3xl font-serif text-white font-bold mt-1">
-              Pencari Arah Kiblat
-            </h1>
-            <p className="text-stone-300 text-xs md:text-sm mt-2 max-w-xl">
-              Cari arah Kaabah dengan mudah. Pegang telefon secara mendatar dan pusing sehingga penunjuk Kiblat berada di garisan atas kompas.
-            </p>
-          </div>
-        </div>
+    <div className="w-full max-w-2xl mx-auto px-4 py-8 flex flex-col items-stretch">
+      {/* Title Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-2xl md:text-3xl font-serif text-stone-850 dark:text-stone-100 font-bold">
+          Pencari Arah Kiblat
+        </h1>
+        <p className="text-stone-500 dark:text-stone-400 text-xs md:text-sm mt-2 max-w-md mx-auto leading-relaxed">
+          Baringkan telefon secara mendatar dan pusing sehingga penunjuk Kaabah emas berada di garisan atas kompas.
+        </p>
       </div>
 
-      {/* Permission & Sensor Request Banner (visible immediately when needed) */}
-      {(location.source !== "GPS Peranti" || compassPermissionNeeded) && (
-        <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-3xl p-6 mb-8 shadow-md">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-amber-500 font-bold text-sm uppercase tracking-wider mb-2">
-                <Info className="w-5 h-5 shrink-0 animate-pulse" />
-                <span>Penyelarasan Kompas & Geolocation</span>
-              </div>
-              <h2 className="text-stone-850 dark:text-stone-100 font-bold text-base md:text-lg">
-                Aktifkan penderia peranti untuk ketepatan arah kiblat yang tinggi
-              </h2>
-              <p className="text-stone-500 dark:text-stone-400 text-xs mt-1.5 leading-relaxed max-w-2xl">
-                Aplikasi ini memerlukan akses **GPS** untuk menentukan koordinat anda dan **sensor orientasi/gerakan** (pada telefon) untuk mencari arah Utara fizikal secara automatik. Sila benarkan akses menggunakan butang di bawah.
-              </p>
-              {gpsError && (
-                <p className="text-red-500 dark:text-red-400 font-semibold text-xs mt-2 leading-relaxed">
-                  {gpsError === "Akses GPS ditolak oleh pengguna." 
-                    ? "Akses GPS ditolak oleh pengguna. Sila benarkan akses lokasi dalam tetapan pelayar anda, atau anda boleh memilih negeri secara manual pada kad rujukan koordinat."
-                    : gpsError}
-                </p>
-              )}
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch md:items-center shrink-0">
-              {compassPermissionNeeded && (
-                <button
-                  onClick={requestCompassPermission}
-                  className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold py-3 px-5 rounded-xl text-xs md:text-sm uppercase tracking-wider transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                  <Compass className="w-4 h-4 shrink-0" />
-                  Aktifkan Kompas Automatik
-                </button>
-              )}
-              
-              {location.source !== "GPS Peranti" && (
-                <button
-                  onClick={requestGps}
-                  disabled={gpsLoading}
-                  className="bg-emerald-900 hover:bg-emerald-850 text-white font-semibold py-3 px-5 rounded-xl text-xs md:text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 disabled:bg-emerald-900/50"
-                >
-                  {gpsLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin shrink-0" />
-                  ) : (
-                    <Navigation className="w-4 h-4 shrink-0" />
-                  )}
-                  {gpsLoading ? "Mengesan Geolocation..." : "Kesan Kedudukan GPS Saya"}
-                </button>
-              )}
-            </div>
-          </div>
+      {/* Compass Panel */}
+      <div className={`rounded-3xl p-6 md:p-8 border flex flex-col items-center justify-center transition-all duration-500 ${compassBg}`}>
+        {/* Alignment Alert Banner */}
+        <div className="h-10 mb-4 flex items-center justify-center">
+          {isAligned ? (
+            <span className="inline-flex items-center gap-1.5 bg-amber-400 text-stone-950 font-bold px-4 py-1.5 rounded-full text-xs animate-bounce tracking-wide shadow-md shadow-amber-500/20 uppercase">
+              <CheckCircle className="w-4 h-4 fill-stone-950 text-amber-400" />
+              Sejajar dengan Kiblat
+            </span>
+          ) : (
+            <span className="text-stone-400 dark:text-stone-500 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <Compass className="w-4 h-4" />
+              Pusing untuk Jajarkan
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Main Grid: Compass vs Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
-        
-        {/* Compass Panel */}
-        <div className={`md:col-span-7 rounded-3xl p-6 md:p-8 border flex flex-col items-center justify-center transition-all duration-500 ${compassBg}`}>
-          {/* Alignment Alert Banner */}
-          <div className="h-10 mb-4 flex items-center justify-center">
-            {isAligned ? (
-              <span className="inline-flex items-center gap-1.5 bg-amber-400 text-stone-950 font-bold px-4 py-1.5 rounded-full text-xs animate-bounce tracking-wide shadow-md shadow-amber-500/20 uppercase">
-                <CheckCircle className="w-4 h-4 fill-stone-950 text-amber-400" />
-                Sejajar dengan Kiblat
-              </span>
-            ) : (
-              <span className="text-stone-400 dark:text-stone-500 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Compass className="w-4 h-4" />
-                Pusing untuk Jajarkan
-              </span>
-            )}
-          </div>
+        {/* SVG Compass container */}
+        <div className="relative w-64 h-64 md:w-80 md:h-80 select-none">
+          {/* Compass Permission Overlay for iOS */}
+          {compassPermissionNeeded && (
+            <div className="absolute inset-0 bg-stone-950/80 backdrop-blur-sm rounded-full flex flex-col items-center justify-center p-6 text-center z-10 border border-amber-500/30">
+              <Compass className="w-8 h-8 text-amber-400 animate-pulse mb-3" />
+              <p className="text-[11px] text-white font-medium mb-4 leading-relaxed max-w-[180px]">
+                Kompas automatik memerlukan akses penderia gerakan peranti anda.
+              </p>
+              <button
+                onClick={requestCompassPermission}
+                className="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold py-2 px-4 rounded-lg text-[10px] uppercase tracking-wide transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                Aktifkan Kompas
+              </button>
+            </div>
+          )}
 
           {/* SVG Compass */}
-          <div className="relative w-64 h-64 md:w-80 md:h-80 select-none">
-            {/* Compass Dial Outer Ring */}
-            <svg 
-              viewBox="0 0 200 200" 
-              className="w-full h-full transition-transform duration-100 ease-out"
-              style={{ transform: `rotate(${-activeHeading}deg)` }}
-            >
-              {/* Dial Background */}
-              <circle cx="100" cy="100" r="92" className="fill-stone-100 dark:fill-stone-950/40 stroke-stone-200 dark:stroke-stone-800" strokeWidth="1.5" />
-              
-              {/* Golden Outer Highlights for Aligned state */}
-              <circle cx="100" cy="100" r="92" className={`fill-none transition-opacity duration-300 ${isAligned ? "stroke-amber-400 opacity-100" : "stroke-transparent opacity-0"}`} strokeWidth="3" />
-
-              {/* Ticks & Degree Markings */}
-              {Array.from({ length: 12 }).map((_, i) => {
-                const angle = i * 30;
-                const radians = (angle * Math.PI) / 180;
-                const x1 = 100 + 82 * Math.sin(radians);
-                const y1 = 100 - 82 * Math.cos(radians);
-                const x2 = 100 + 90 * Math.sin(radians);
-                const y2 = 100 - 90 * Math.cos(radians);
-                return (
-                  <line 
-                    key={i} 
-                    x1={x1} 
-                    y1={y1} 
-                    x2={x2} 
-                    y2={y2} 
-                    className="stroke-stone-400 dark:stroke-stone-600" 
-                    strokeWidth={i % 3 === 0 ? "2" : "1"} 
-                  />
-                );
-              })}
-
-              {/* Cardinal Text Labels */}
-              <text x="100" y="24" textAnchor="middle" className="font-bold text-[14px] fill-red-600 dark:fill-red-500 font-mono">U</text> {/* Utara */}
-              <text x="178" y="105" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">T</text> {/* Timur */}
-              <text x="100" y="188" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">S</text> {/* Selatan */}
-              <text x="24" y="105" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">B</text> {/* Barat */}
-
-              {/* Qibla Destination Needle Indicator */}
-              <g transform={`rotate(${qiblaResult.bearing} 100 100)`}>
-                {/* Dotted Golden Line to Qibla */}
-                <line x1="100" y1="100" x2="100" y2="28" className="stroke-amber-500/50" strokeDasharray="3,3" strokeWidth="1.5" />
-                
-                {/* Golden Arrow Pointer */}
-                <path d="M 100,16 L 105,28 L 95,28 Z" className="fill-amber-400 stroke-amber-500" strokeWidth="0.5" />
-
-                {/* Kaaba Pseudo-3D Silhouette inside Arrow path */}
-                <g transform="translate(100 42) scale(0.9)">
-                  {/* Isometric Cube (Kaaba) */}
-                  {/* Right Face */}
-                  <path d="M 0,-6 L 6,-3 L 6,6 L 0,3 Z" fill="#262626" />
-                  {/* Left Face */}
-                  <path d="M 0,-6 L -6,-3 L -6,6 L 0,3 Z" fill="#0f0f0f" />
-                  {/* Top Face */}
-                  <path d="M 0,-6 L 6,-3 L 0,0 L -6,-3 Z" fill="#3a3a3a" />
-                  {/* Kiswah Gold Band */}
-                  <path d="M 0,-3.5 L 6,-0.5 L 6,0.5 L 0,-2.5 Z" fill="#d4af37" />
-                  <path d="M 0,-3.5 L -6,-0.5 L -6,0.5 L 0,-2.5 Z" fill="#d4af37" />
-                </g>
-              </g>
-
-              {/* North Pointer Needle */}
-              <polygon points="100,100 96,100 100,32" className="fill-red-500 opacity-90" />
-              <polygon points="100,100 104,100 100,32" className="fill-red-600 opacity-90" />
-              {/* South Needle */}
-              <polygon points="100,100 96,100 100,168" className="fill-stone-300 dark:fill-stone-700" />
-              <polygon points="100,100 104,100 100,168" className="fill-stone-400 dark:fill-stone-600" />
-
-              {/* Center Pin */}
-              <circle cx="100" cy="100" r="5" className="fill-amber-500 stroke-white dark:stroke-stone-900" strokeWidth="1.5" />
-            </svg>
-
-            {/* Static Overlay Arrow at the top of the compass display, showing true forward heading of the device */}
-            <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center select-none pointer-events-none">
-              <div className="w-3 h-3 border-l-2 border-t-2 border-emerald-500 rotate-45" />
-            </div>
-          </div>
-
-          {/* Compass Info Footer */}
-          <div className="mt-6 text-center">
-            <span className="text-xl font-mono font-bold text-stone-800 dark:text-stone-100">
-              {qiblaRelativeAngle.toFixed(0)}&deg;
-            </span>
-            <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 uppercase tracking-wider font-semibold">
-              Sudut Penjajaran Kiblat
-            </div>
-          </div>
-        </div>
-
-        {/* Info & Settings Panel */}
-        <div className="md:col-span-5 flex flex-col gap-6">
-          
-          {/* Coordinates Location Info */}
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-5 shadow-md flex-1">
-            <h3 className="text-sm font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-4 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Rujukan Koordinat
-            </h3>
+          <svg 
+            viewBox="0 0 200 200" 
+            className="w-full h-full transition-transform duration-100 ease-out"
+            style={{ transform: `rotate(${-activeHeading}deg)` }}
+          >
+            {/* Dial Background */}
+            <circle cx="100" cy="100" r="92" className="fill-stone-100 dark:fill-stone-950/40 stroke-stone-200 dark:stroke-stone-800" strokeWidth="1.5" />
             
-            <div className="space-y-4">
-              <div>
-                <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">Lokasi Dipilih</span>
-                <div className="text-stone-800 dark:text-stone-100 font-bold leading-tight mt-1">{location.name}</div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 border-t border-stone-100 dark:border-stone-800 pt-3">
-                <div>
-                  <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">Lat / Long</span>
-                  <div className="text-stone-800 dark:text-stone-100 font-mono font-semibold text-xs mt-1">
-                    {location.lat.toFixed(5)} &deg;N
-                    <br />
-                    {location.lon.toFixed(5)} &deg;E
-                  </div>
-                </div>
-                <div>
-                  <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">Sumber Lokasi</span>
-                  <div className="mt-1 font-semibold text-xs inline-flex px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/20">
-                    {location.source}
-                  </div>
-                </div>
-              </div>
+            {/* Golden Outer Highlights for Aligned state */}
+            <circle cx="100" cy="100" r="92" className={`fill-none transition-opacity duration-300 ${isAligned ? "stroke-amber-400 opacity-100" : "stroke-transparent opacity-0"}`} strokeWidth="3" />
 
-              <div className="grid grid-cols-2 gap-4 border-t border-stone-100 dark:border-stone-800 pt-3">
-                <div>
-                  <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">Arah Kiblat</span>
-                  <div className="text-amber-600 dark:text-amber-400 font-mono font-bold text-base mt-0.5">
-                    {qiblaResult.bearing.toFixed(2)}&deg; Utara
-                  </div>
-                </div>
-                <div>
-                  <span className="text-xs text-stone-400 dark:text-stone-500 font-medium">Jarak ke Kaaba</span>
-                  <div className="text-stone-800 dark:text-stone-100 font-mono font-bold text-sm mt-0.5">
-                    {Math.round(qiblaResult.distance).toLocaleString()} km
-                  </div>
-                </div>
-              </div>
+            {/* Ticks & Degree Markings */}
+            {Array.from({ length: 12 }).map((_, i) => {
+              const angle = i * 30;
+              const radians = (angle * Math.PI) / 180;
+              const x1 = 100 + 82 * Math.sin(radians);
+              const y1 = 100 - 82 * Math.cos(radians);
+              const x2 = 100 + 90 * Math.sin(radians);
+              const y2 = 100 - 90 * Math.cos(radians);
+              return (
+                <line 
+                  key={i} 
+                  x1={x1} 
+                  y1={y1} 
+                  x2={x2} 
+                  y2={y2} 
+                  className="stroke-stone-400 dark:stroke-stone-600" 
+                  strokeWidth={i % 3 === 0 ? "2" : "1"} 
+                />
+              );
+            })}
 
-              {/* Manual Location Selection Dropdown */}
-              <div className="border-t border-stone-100 dark:border-stone-800 pt-4">
-                <label className="text-xs text-stone-500 dark:text-stone-400 font-bold mb-2 uppercase tracking-wider flex items-center gap-1.5">
-                  Pilih Negeri secara Manual
-                </label>
-                <div className="relative">
-                  <select
-                    value={
-                      Object.keys(STATE_COORDINATES).find(
-                        (key) => Math.abs(STATE_COORDINATES[key].lat - location.lat) < 0.0001 && Math.abs(STATE_COORDINATES[key].lon - location.lon) < 0.0001
-                      ) || ""
-                    }
-                    onChange={(e) => handleStateChange(e.target.value)}
-                    className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-750 rounded-xl px-4 py-2.5 text-stone-800 dark:text-stone-100 text-xs font-semibold focus:ring-2 focus:ring-amber-500 focus:border-amber-500 focus:outline-none appearance-none cursor-pointer pr-10"
-                  >
-                    <option value="" disabled>-- Pilih Negeri --</option>
-                    {Object.keys(STATE_COORDINATES).sort().map((state) => (
-                      <option key={state} value={state}>
-                        {state} ({STATE_COORDINATES[state].name})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-stone-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-                <p className="text-[10px] text-stone-400 dark:text-stone-500 mt-1.5 leading-normal">
-                  Jika GPS peranti anda disekat atau tidak aktif, anda boleh memilih negeri secara manual untuk menetapkan kedudukan kompas.
-                </p>
-              </div>
-            </div>
+            {/* Cardinal Text Labels */}
+            <text x="100" y="24" textAnchor="middle" className="font-bold text-[14px] fill-red-600 dark:fill-red-500 font-mono">U</text>
+            <text x="178" y="105" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">T</text>
+            <text x="100" y="188" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">S</text>
+            <text x="24" y="105" textAnchor="middle" className="font-bold text-[13px] fill-stone-500 dark:fill-stone-400 font-mono">B</text>
 
-            {/* GPS Trigger Button */}
-            <div className="mt-6 space-y-2">
-              <button
-                onClick={requestGps}
-                disabled={gpsLoading}
-                className="w-full bg-emerald-900 hover:bg-emerald-850 text-white font-semibold py-3 px-4 rounded-xl text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:bg-emerald-900/50"
-              >
-                {gpsLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Navigation className="w-4 h-4" />
-                )}
-                {gpsLoading ? "Mengesan Geolocation..." : "Kesan Kedudukan GPS Saya"}
-              </button>
-              
-              {gpsError && (
-                <div className="flex flex-col gap-1 text-red-600 dark:text-red-400 text-xs p-3 bg-red-500/5 border border-red-500/20 rounded-xl">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>Akses Lokasi Disekat / Ralat</span>
-                  </div>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-normal mt-0.5">
-                    {gpsError === "Akses GPS ditolak oleh pengguna." 
-                      ? "Akses GPS ditolak. Sila benarkan akses lokasi dalam tetapan pelayar anda, atau pilih negeri secara manual menggunakan menu di atas."
-                      : `${gpsError} Sila gunakan pilihan negeri secara manual di atas.`}
-                  </p>
-                </div>
-              )}
-            </div>
+            {/* Qibla Destination Needle Indicator */}
+            <g transform={`rotate(${qiblaResult.bearing} 100 100)`}>
+              <line x1="100" y1="100" x2="100" y2="28" className="stroke-amber-500/50" strokeDasharray="3,3" strokeWidth="1.5" />
+              <path d="M 100,16 L 105,28 L 95,28 Z" className="fill-amber-400 stroke-amber-500" strokeWidth="0.5" />
+
+              <g transform="translate(100 42) scale(0.9)">
+                <path d="M 0,-6 L 6,-3 L 6,6 L 0,3 Z" fill="#262626" />
+                <path d="M 0,-6 L -6,-3 L -6,6 L 0,3 Z" fill="#0f0f0f" />
+                <path d="M 0,-6 L 6,-3 L 0,0 L -6,-3 Z" fill="#3a3a3a" />
+                <path d="M 0,-3.5 L 6,-0.5 L 6,0.5 L 0,-2.5 Z" fill="#d4af37" />
+                <path d="M 0,-3.5 L -6,-0.5 L -6,0.5 L 0,-2.5 Z" fill="#d4af37" />
+              </g>
+            </g>
+
+            {/* North Pointer Needle */}
+            <polygon points="100,100 96,100 100,32" className="fill-red-500 opacity-90" />
+            <polygon points="100,100 104,100 100,32" className="fill-red-600 opacity-90" />
+            {/* South Needle */}
+            <polygon points="100,100 96,100 100,168" className="fill-stone-300 dark:fill-stone-700" />
+            <polygon points="100,100 104,100 100,168" className="fill-stone-400 dark:fill-stone-600" />
+
+            {/* Center Pin */}
+            <circle cx="100" cy="100" r="5" className="fill-amber-500 stroke-white dark:stroke-stone-900" strokeWidth="1.5" />
+          </svg>
+
+          {/* Static Forward Arrow */}
+          <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center select-none pointer-events-none">
+            <div className="w-3 h-3 border-l-2 border-t-2 border-emerald-500 rotate-45" />
           </div>
+        </div>
 
-          {/* Compass Sensor Control Card */}
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-5 shadow-md">
-            <h3 className="text-sm font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Compass className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Kawalan Kompas
-            </h3>
-
-            {compassPermissionNeeded ? (
-              <div className="space-y-3">
-                <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-                  Peranti iOS (Safari) memerlukan kebenaran penderia gerakan untuk menggunakan kompas automatik. Sila tekan butang di bawah untuk membenarkannya.
-                </p>
-                <button
-                  onClick={requestCompassPermission}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold py-2.5 px-4 rounded-xl text-xs uppercase tracking-wide transition-all shadow-sm"
-                >
-                  Aktifkan Kompas Automatik
-                </button>
-              </div>
-            ) : hasCompass ? (
-              <div className="flex items-center gap-2 bg-emerald-500/5 border border-emerald-500/20 p-3 rounded-xl">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
-                  Penderia Kompas Aktif (Auto-Orientasi)
-                </span>
-              </div>
-            ) : (
-              // Desktop Slider Calibration
-              <div className="space-y-4">
-                <div className="flex items-start gap-2 text-stone-500 dark:text-stone-400 text-xs">
-                  <Info className="w-4 h-4 shrink-0 text-amber-500" />
-                  <p className="leading-normal">
-                    Tiada penderia orientasi dikesan (Komputer Desktop). Sila gunakan penggelongsor di bawah untuk memusingkan kompas secara manual agar sejajar dengan arah Utara fizikal anda.
-                  </p>
-                </div>
-                
-                <div className="space-y-2 border-t border-stone-100 dark:border-stone-800 pt-3">
-                  <div className="flex justify-between text-xs font-bold">
-                    <span className="text-stone-400 dark:text-stone-500">Pusing Kompas</span>
-                    <span className="text-stone-700 dark:text-stone-300 font-mono">{manualRotation}&deg; U</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="359"
-                    value={manualRotation}
-                    onChange={(e) => setManualRotation(Number(e.target.value))}
-                    className="w-full h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer accent-emerald-800"
-                  />
-                  <div className="flex justify-between text-[10px] text-stone-400 uppercase tracking-widest font-bold">
-                    <span>Utara</span>
-                    <span>Timur</span>
-                    <span>Selatan</span>
-                    <span>Barat</span>
-                    <span>Utara</span>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* Compass Info Footer */}
+        <div className="mt-6 text-center">
+          <span className="text-xl font-mono font-bold text-stone-800 dark:text-stone-100">
+            {qiblaRelativeAngle.toFixed(0)}&deg;
+          </span>
+          <div className="text-xs text-stone-500 dark:text-stone-400 mt-1 uppercase tracking-wider font-semibold">
+            Sudut Penjajaran Kiblat
           </div>
         </div>
       </div>
 
-      {/* Related Content & SEO FAQ Section */}
-      <div className="mt-16 border-t border-stone-200 dark:border-stone-850 pt-12 space-y-12">
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
-            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-5 rounded bg-amber-500" />
-              Cara Penggunaan
-            </h3>
-            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
-              Baringkan peranti anda secara rata (mendatar) di atas tapak tangan. Pusingkan badan anda perlahan-lahan mengikut putaran kompas sehingga penunjuk Kaabah emas sejajar dengan anak panah hijau di bahagian atas. Peranti akan bergetar pendek sebagai petanda arah kiblat telah sejajar.
-            </p>
+      {/* GPS Error Message */}
+      {gpsError && (
+        <div className="mt-6 flex flex-col gap-1 text-red-600 dark:text-red-400 text-xs p-4 bg-red-500/5 border border-red-500/20 rounded-2xl max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-1.5 font-bold">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>Akses Lokasi Disekat / Ralat</span>
           </div>
-
-          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
-            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-5 rounded bg-emerald-600" />
-              Kalibrasi Penderia
-            </h3>
-            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
-              Sekiranya jarum kompas tidak stabil atau menunjukkan arah yang salah, penderia peranti anda mungkin memerlukan kalibrasi. Pegang peranti anda dan gerakkannya membentuk corak nombor lapan (figure-8) di udara beberapa kali untuk menetapkan semula penderia magnetik.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-stone-900/40 p-6 rounded-2xl border border-stone-100 dark:border-stone-850/60 shadow-sm">
-            <h3 className="font-bold text-stone-800 dark:text-stone-250 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-5 rounded bg-teal-600" />
-              Gangguan Magnetik
-            </h3>
-            <p className="text-stone-500 dark:text-stone-400 text-xs leading-relaxed">
-              Peralatan elektronik, struktur besi konkrit, pemancar isyarat, malah kerangka telefon yang mengandungi logam atau magnet boleh mengganggu penderia magnetometer telefon anda. Sentiasa gunakan pencari kiblat jauh daripada sumber-sumber gangguan tersebut.
-            </p>
-          </div>
+          <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed text-center mt-1">
+            {gpsError}
+          </p>
         </div>
-
-        {/* FAQs */}
-        <div className="bg-white dark:bg-stone-900/30 p-6 md:p-8 rounded-3xl border border-stone-100 dark:border-stone-850/60">
-          <h2 className="text-lg md:text-xl font-serif font-bold text-stone-850 dark:text-stone-100 mb-6 text-center md:text-left">
-            Soalan Lazim Mengenai Kiblat & Kompas
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
-                Apakah formula pengiraan arah kiblat yang digunakan?
-              </h4>
-              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
-                Aplikasi ini menggunakan formula trigonometri sfere (Haversine dan bearing sudut) untuk mengira sudut bearing Kaabah (21.4225&deg; N, 39.8262&deg; E) dari koordinat lokasi semasa anda.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
-                Mengapa saya perlu membenarkan akses kompas & lokasi?
-              </h4>
-              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
-                Akses lokasi diperlukan untuk menentukan kedudukan koordinat anda bagi mengira sudut bearing kiblat yang betul. Akses gerakan/orientasi pula membolehkan kompas maya berputar mengikut arah fizikal telefon anda secara real-time.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
-                Adakah kompas ini boleh digunakan pada komputer desktop?
-              </h4>
-              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
-                Komputer desktop amnya tidak mempunyai penderia orientasi gerakan (gyroscope/magnetometer). Untuk desktop, anda boleh menggunakan bar kawalan pusingan kompas manual bagi menyelaraskan kompas mengikut arah Utara fizikal rumah anda.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-stone-750 dark:text-stone-250 text-xs md:text-sm">
-                Apakah arah kiblat bagi negeri-negeri di Malaysia?
-              </h4>
-              <p className="text-stone-550 dark:text-stone-450 text-[11px] md:text-xs leading-relaxed">
-                Secara amnya, sudut arah kiblat dari Malaysia berada dalam lingkungan 291&deg; hingga 293&deg; dari arah Utara (atau sekitar arah Barat Laut), bergantung kepada kedudukan geografi negeri anda.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
