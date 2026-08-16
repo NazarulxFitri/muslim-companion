@@ -188,21 +188,12 @@ export default function KiblatFinder() {
     };
   }, [mounted, compassPermissionNeeded]);
 
-  // Auto-detect location on mount if GPS is enabled, or ask for permission if not set yet
+  // Auto-detect location on mount if GPS is enabled/not set yet (failing silently if blocked)
   useEffect(() => {
     if (!mounted) return;
     const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
-    if (gpsEnabledSetting === "true") {
-      requestGps();
-    } else if (gpsEnabledSetting === null) {
-      const consent = window.confirm(
-        "Adakah anda ingin membenarkan Muslim Companion mengakses lokasi GPS peranti anda untuk mengesan arah kiblat secara automatik?"
-      );
-      if (consent) {
-        requestGps();
-      } else {
-        localStorage.setItem("solat-gps-enabled", "false");
-      }
+    if (gpsEnabledSetting !== "false") {
+      requestGps(true);
     }
   }, [mounted]);
 
@@ -242,12 +233,12 @@ export default function KiblatFinder() {
   };
 
   // Get current high accuracy Geolocation
-  function requestGps() {
+  function requestGps(silent = false) {
     setGpsLoading(true);
-    setGpsError(null);
+    if (!silent) setGpsError(null);
 
     if (!navigator.geolocation) {
-      setGpsError("Pencari GPS tidak disokong oleh pelayar anda.");
+      if (!silent) setGpsError("Pencari GPS tidak disokong oleh pelayar anda.");
       setGpsLoading(false);
       return;
     }
@@ -273,7 +264,10 @@ export default function KiblatFinder() {
         } else if (err.code === 3) {
           msg = "Rangkaian tamat masa ketika mencari lokasi.";
         }
-        setGpsError(msg);
+        
+        if (!silent) {
+          setGpsError(msg);
+        }
         setGpsLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }

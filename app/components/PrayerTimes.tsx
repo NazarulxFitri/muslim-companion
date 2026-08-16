@@ -170,21 +170,12 @@ export default function PrayerTimes() {
     return () => clearInterval(timer);
   }, [mounted]);
 
-  // Auto-detect location on mount if GPS is enabled, or ask for permission if not set yet
+  // Auto-detect location on mount if GPS is enabled/not set yet (failing silently if blocked)
   useEffect(() => {
     if (!mounted) return;
     const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
-    if (gpsEnabledSetting === "true") {
-      detectLocationZone();
-    } else if (gpsEnabledSetting === null) {
-      const consent = window.confirm(
-        "Adakah anda ingin membenarkan Muslim Companion mengakses lokasi GPS peranti anda untuk mengesan zon waktu solat secara automatik?"
-      );
-      if (consent) {
-        detectLocationZone();
-      } else {
-        localStorage.setItem("solat-gps-enabled", "false");
-      }
+    if (gpsEnabledSetting !== "false") {
+      detectLocationZone(true);
     }
   }, [mounted]);
 
@@ -268,12 +259,12 @@ export default function PrayerTimes() {
   };
 
   // Detect location and map to the closest JAKIM zone
-  const detectLocationZone = () => {
+  const detectLocationZone = (silent = false) => {
     setLocLoading(true);
-    setLocError(null);
+    if (!silent) setLocError(null);
 
     if (!navigator.geolocation) {
-      setLocError("GPS tidak disokong pelayar.");
+      if (!silent) setLocError("GPS tidak disokong pelayar.");
       setLocLoading(false);
       return;
     }
@@ -322,7 +313,10 @@ export default function PrayerTimes() {
         }
         else if (err.code === 2) msg = "Lokasi tidak tersedia.";
         else if (err.code === 3) msg = "Tamat masa carian.";
-        setLocError(msg);
+        
+        if (!silent) {
+          setLocError(msg);
+        }
         setLocLoading(false);
       },
       { enableHighAccuracy: true, timeout: 8000 }
@@ -524,7 +518,7 @@ export default function PrayerTimes() {
             {/* Auto GPS detector for prayer times */}
             <div className="mt-4 border-t border-white/10 pt-4">
               <button
-                onClick={detectLocationZone}
+                onClick={() => detectLocationZone(false)}
                 disabled={locLoading}
                 className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-amber-500/50 text-stone-950 text-xs font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-[0.98]"
               >
