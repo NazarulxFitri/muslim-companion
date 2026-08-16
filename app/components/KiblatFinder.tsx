@@ -48,6 +48,7 @@ export default function KiblatFinder() {
 
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [gpsPermissionPromptNeeded, setGpsPermissionPromptNeeded] = useState(false);
 
   // Compass States
   const [hasCompass, setHasCompass] = useState(false);
@@ -188,12 +189,14 @@ export default function KiblatFinder() {
     };
   }, [mounted, compassPermissionNeeded]);
 
-  // Auto-detect location on mount if GPS is enabled/not set yet (failing silently if blocked)
+  // Auto-detect location on mount if GPS is enabled/not set yet
   useEffect(() => {
     if (!mounted) return;
     const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
-    if (gpsEnabledSetting !== "false") {
+    if (gpsEnabledSetting === "true") {
       requestGps(true);
+    } else if (gpsEnabledSetting === null) {
+      setGpsPermissionPromptNeeded(true);
     }
   }, [mounted]);
 
@@ -300,6 +303,41 @@ export default function KiblatFinder() {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4 py-8 flex flex-col items-stretch">
+      {/* GPS Permission Banner Prompt */}
+      {gpsPermissionPromptNeeded && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-sm shadow-md border-amber-500/20">
+          <div className="flex items-center gap-3">
+            <MapPin className="w-5 h-5 text-amber-500 shrink-0 animate-bounce" />
+            <div>
+              <h4 className="text-white text-sm font-semibold">Aktifkan Lokasi Automatik</h4>
+              <p className="text-stone-300 text-xs mt-0.5 leading-relaxed">
+                Muslim Companion ingin mengesan lokasi anda secara automatik menggunakan GPS untuk kompas kiblat yang tepat.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => {
+                setGpsPermissionPromptNeeded(false);
+                localStorage.setItem("solat-gps-enabled", "false");
+              }}
+              className="text-stone-400 hover:text-white text-xs font-bold py-2 px-3 rounded-lg transition-all cursor-pointer"
+            >
+              Manual
+            </button>
+            <button
+              onClick={() => {
+                setGpsPermissionPromptNeeded(false);
+                requestGps(false);
+              }}
+              className="bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold py-2 px-4 rounded-lg transition-all active:scale-[0.97] cursor-pointer"
+            >
+              Aktifkan GPS
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Title Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl md:text-3xl font-serif text-stone-850 dark:text-stone-100 font-bold">
