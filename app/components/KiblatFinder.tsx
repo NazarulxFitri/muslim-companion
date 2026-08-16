@@ -188,12 +188,21 @@ export default function KiblatFinder() {
     };
   }, [mounted, compassPermissionNeeded]);
 
-  // Auto-detect location on mount if GPS is enabled/not set yet
+  // Auto-detect location on mount if GPS is enabled, or ask for permission if not set yet
   useEffect(() => {
     if (!mounted) return;
     const gpsEnabledSetting = localStorage.getItem("solat-gps-enabled");
-    if (gpsEnabledSetting !== "false") {
+    if (gpsEnabledSetting === "true") {
       requestGps();
+    } else if (gpsEnabledSetting === null) {
+      const consent = window.confirm(
+        "Adakah anda ingin membenarkan Muslim Companion mengakses lokasi GPS peranti anda untuk mengesan arah kiblat secara automatik?"
+      );
+      if (consent) {
+        requestGps();
+      } else {
+        localStorage.setItem("solat-gps-enabled", "false");
+      }
     }
   }, [mounted]);
 
