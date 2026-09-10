@@ -60,19 +60,24 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
                 flexDirection: isUser ? 'row-reverse' : 'row'
               }}
             >
-              {/* Avatar */}
+              {/* Avatar Icon Box */}
               <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
+                width: '38px',
+                height: '38px',
+                borderRadius: '12px',
                 background: isUser ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justify: 'center',
                 flexShrink: 0,
-                boxShadow: isUser ? 'none' : '0 0 15px rgba(139, 92, 246, 0.3)'
+                boxShadow: isUser ? 'none' : '0 0 15px rgba(139, 92, 246, 0.3)',
+                lineHeight: 0
               }}>
-                {isUser ? <User size={18} color="#fff" style={{ display: 'block' }} /> : <Bot size={19} color="#fff" style={{ display: 'block' }} />}
+                {isUser ? (
+                  <User size={19} color="#fff" style={{ display: 'block', margin: '0 auto' }} />
+                ) : (
+                  <Bot size={20} color="#fff" style={{ display: 'block', margin: '0 auto' }} />
+                )}
               </div>
 
               {/* Message Content Bubble */}
@@ -149,7 +154,7 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
                     gap: '12px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}>
                         <CheckCircle2 size={18} color="var(--primary-emerald)" style={{ display: 'block' }} />
                       </div>
                       <div>
@@ -170,7 +175,7 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
                         style={{ padding: '6px 12px', fontSize: '0.75rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       >
                         <span>View</span>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}>
                           <ExternalLink size={12} style={{ display: 'block' }} />
                         </div>
                       </a>
@@ -186,15 +191,17 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
         {isThinking && (
           <div className="animate-fade-in" style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
             <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
+              width: '38px',
+              height: '38px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)',
               display: 'flex',
               alignItems: 'center',
-              justify: 'center'
+              justify: 'center',
+              flexShrink: 0,
+              lineHeight: 0
             }}>
-              <Loader2 size={19} color="#fff" className="animate-spin-slow" style={{ display: 'block' }} />
+              <Loader2 size={19} color="#fff" className="animate-spin-slow" style={{ display: 'block', margin: '0 auto' }} />
             </div>
             <div style={{
               background: 'rgba(15, 23, 42, 0.85)',
@@ -208,7 +215,7 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
               gap: '10px',
               boxShadow: 'var(--shadow-glow-purple)'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}>
                 <Sparkles size={16} color="var(--primary-purple)" style={{ display: 'block' }} />
               </div>
               <span>Julee is processing instructions and executing cloud steps...</span>
@@ -284,7 +291,7 @@ export default function ChatView({ messages, onSendMessage, isThinking }) {
             }}
           >
             <span>Send</span>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}>
               <Send size={16} style={{ display: 'block' }} />
             </div>
           </button>
