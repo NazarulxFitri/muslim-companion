@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal as TerminalIcon, Filter, Trash2, Copy, Check, Play, RefreshCw } from 'lucide-react';
+import { Terminal as TerminalIcon, Trash2, Copy, Check, RefreshCw } from 'lucide-react';
 
 export default function TerminalView({ logs, onClearLogs, onRunDiagnostic }) {
   const [filter, setFilter] = useState('ALL');
@@ -32,7 +32,9 @@ export default function TerminalView({ logs, onClearLogs, onRunDiagnostic }) {
       }}>
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <TerminalIcon size={24} color="var(--primary-cyan)" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TerminalIcon size={24} color="var(--primary-cyan)" style={{ display: 'block' }} />
+            </div>
             Real-Time Terminal Output Stream
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -41,16 +43,22 @@ export default function TerminalView({ logs, onClearLogs, onRunDiagnostic }) {
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={onRunDiagnostic} className="btn-secondary" style={{ padding: '8px 14px' }}>
-            <RefreshCw size={14} />
+          <button onClick={onRunDiagnostic} className="btn-secondary" style={{ padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <RefreshCw size={14} style={{ display: 'block' }} />
+            </div>
             <span>Run Diagnostic</span>
           </button>
-          <button onClick={handleCopy} className="btn-secondary" style={{ padding: '8px 14px' }}>
-            {copied ? <Check size={14} color="var(--primary-emerald)" /> : <Copy size={14} />}
+          <button onClick={handleCopy} className="btn-secondary" style={{ padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {copied ? <Check size={14} color="var(--primary-emerald)" style={{ display: 'block' }} /> : <Copy size={14} style={{ display: 'block' }} />}
+            </div>
             <span>{copied ? 'Copied' : 'Copy Logs'}</span>
           </button>
-          <button onClick={onClearLogs} className="btn-secondary" style={{ padding: '8px 14px', color: 'var(--accent-pink)' }}>
-            <Trash2 size={14} />
+          <button onClick={onClearLogs} className="btn-secondary" style={{ padding: '8px 14px', color: 'var(--accent-pink)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Trash2 size={14} style={{ display: 'block' }} />
+            </div>
             <span>Clear</span>
           </button>
         </div>

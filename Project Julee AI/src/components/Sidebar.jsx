@@ -1,13 +1,11 @@
 import React from 'react';
-import { MessageSquare, Cpu, Terminal, GitBranch, Settings, Zap, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Cpu, Terminal, Zap, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
   const navItems = [
     { id: 'chat', label: 'Julee Chat', icon: MessageSquare, badge: null },
     { id: 'tasks', label: 'Active Tasks', icon: Cpu, badge: taskCount > 0 ? taskCount : null },
-    { id: 'terminal', label: 'Terminal Logs', icon: Terminal, badge: 'Live' },
-    { id: 'integrations', label: 'GitHub & Vercel', icon: GitBranch, badge: '2 Active' },
-    { id: 'settings', label: 'Agent Settings', icon: Settings, badge: null }
+    { id: 'terminal', label: 'Terminal Logs', icon: Terminal, badge: 'Live' }
   ];
 
   return (
@@ -44,9 +42,10 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
             alignItems: 'center',
             justify: 'center',
             boxShadow: 'var(--shadow-glow-purple)',
-            position: 'relative'
+            position: 'relative',
+            flexShrink: 0
           }}>
-            <Zap size={22} color="#ffffff" />
+            <Zap size={22} color="#ffffff" style={{ display: 'block' }} />
             <div style={{
               position: 'absolute',
               bottom: '-2px',
@@ -95,7 +94,9 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px' }}>
+                    <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} style={{ display: 'block' }} />
+                  </div>
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
@@ -120,7 +121,9 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
       {/* Cloud Runner Card */}
       <div className="glass-panel" style={{ padding: '14px', borderRadius: 'var(--radius-sm)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <ShieldCheck size={16} color="var(--primary-emerald)" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShieldCheck size={16} color="var(--primary-emerald)" style={{ display: 'block' }} />
+          </div>
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>24/7 Cloud Engine</span>
         </div>
         <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>

@@ -4,18 +4,15 @@ import Header from './components/Header';
 import ChatView from './components/ChatView';
 import TasksView from './components/TasksView';
 import TerminalView from './components/TerminalView';
-import IntegrationsView from './components/IntegrationsView';
-import SettingsView from './components/SettingsView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('chat');
   const [isThinking, setIsThinking] = useState(false);
-  const [cloudEndpoint, setCloudEndpoint] = useState('https://julee-cloud-runner.up.railway.app');
 
-  const [connectedIntegrations, setConnectedIntegrations] = useState({
+  const connectedIntegrations = {
     github: true,
     vercel: true
-  });
+  };
 
   // Initial messages from Julee
   const [messages, setMessages] = useState([
@@ -26,7 +23,7 @@ export default function App() {
       actionCard: {
         title: 'Cloud Engine Online (Gemini 3.6 Flash Medium)',
         detail: 'Connected to GitHub: NazarulxFitri/muslim-companion & Vercel target.',
-        url: 'https://vercel.com'
+        url: 'https://project-julee-ai.vercel.app'
       }
     },
     {
@@ -44,7 +41,7 @@ export default function App() {
       startedAt: '10 mins ago',
       status: 'Completed',
       gitBranch: 'main',
-      vercelDeployment: 'julee-ai-companion.vercel.app',
+      vercelDeployment: 'project-julee-ai.vercel.app',
       steps: [
         { title: 'Checked out branch main from GitHub', completed: true },
         { title: 'Ran code linting and structural check', completed: true },
@@ -57,9 +54,9 @@ export default function App() {
       startedAt: '1 hour ago',
       status: 'Completed',
       gitBranch: 'main',
-      vercelDeployment: 'julee-ai-companion.vercel.app',
+      vercelDeployment: 'project-julee-ai.vercel.app',
       steps: [
-        { title: 'Pushed commit 7a829bc to GitHub', completed: true },
+        { title: 'Pushed commit 2a59e85 to GitHub', completed: true },
         { title: 'Triggered Vercel webhook build target', completed: true },
         { title: 'Deployment published & active on production SSL', completed: true }
       ]
@@ -98,11 +95,11 @@ export default function App() {
 
       if (isDeployReq) {
         replyText = `Understood! I triggered a fresh build and deployed your project directly to Vercel production. All health checks passed successfully!`;
-        codeSnippet = `$ git push origin main\n$ vercel --prod --token=••••••••\n> Building project...\n> Deployment complete: https://julee-ai-companion.vercel.app`;
+        codeSnippet = `$ git push origin main\n$ vercel --prod\n> Building project...\n> Deployment complete: https://project-julee-ai.vercel.app`;
         actionCard = {
           title: 'Vercel Production Deployment Success',
-          detail: 'Project build #14 live on production SSL.',
-          url: 'https://julee-ai-companion.vercel.app'
+          detail: 'Project build live on production SSL.',
+          url: 'https://project-julee-ai.vercel.app'
         };
         newLogCategory = 'VERCEL';
         newLogMsg = `Triggered Vercel production deployment build #${taskId}. Status: 200 OK.`;
@@ -114,7 +111,7 @@ export default function App() {
           startedAt: 'Just now',
           status: 'Completed',
           gitBranch: 'main',
-          vercelDeployment: 'julee-ai-companion.vercel.app',
+          vercelDeployment: 'project-julee-ai.vercel.app',
           steps: [
             { title: 'Received Vercel deployment request', completed: true },
             { title: 'Bundled production assets with Vite', completed: true },
@@ -124,14 +121,14 @@ export default function App() {
 
       } else if (isPushReq) {
         replyText = `Got it! I committed the latest changes and pushed them straight to your GitHub repository on branch 'main'.`;
-        codeSnippet = `$ git add .\n$ git commit -m "feat: updates processed by Julee AI partner"\n$ git push origin main\nTo github.com:NazarulxFitri/muslim-companion.git\n   3f4a9b1..8e920af  main -> main`;
+        codeSnippet = `$ git add .\n$ git commit -m "feat: updates processed by Julee AI partner"\n$ git push origin main\nTo github.com:NazarulxFitri/muslim-companion.git\n   2a59e85..6e4871a  main -> main`;
         actionCard = {
           title: 'GitHub Commit & Push Complete',
-          detail: 'Commit hash 8e920af pushed to branch main.',
-          url: 'https://github.com'
+          detail: 'Commit hash pushed to branch main.',
+          url: 'https://github.com/NazarulxFitri/muslim-companion'
         };
         newLogCategory = 'GIT';
-        newLogMsg = `Git commit 8e920af pushed to origin/main successfully.`;
+        newLogMsg = `Git commit pushed to origin/main successfully.`;
 
         setTasks(prev => [{
           id: taskId,
@@ -147,7 +144,7 @@ export default function App() {
         }, ...prev]);
 
       } else if (isStatusReq) {
-        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime. Memory usage: 42MB. Active GitHub & Vercel credentials verified.`;
+        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime. Memory usage: 42MB. Active GitHub & Vercel integrations verified.`;
         newLogCategory = 'SYSTEM';
         newLogMsg = `Performed 24/7 cloud health check. System operating normally.`;
       } else {
@@ -175,13 +172,6 @@ export default function App() {
 
       setIsThinking(false);
     }, 1200);
-  };
-
-  const handleToggleIntegration = (key) => {
-    setConnectedIntegrations(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
   };
 
   const handleClearLogs = () => {
@@ -220,7 +210,6 @@ export default function App() {
               messages={messages}
               onSendMessage={handleSendMessage}
               isThinking={isThinking}
-              onExecuteAction={(prompt) => handleSendMessage(prompt)}
             />
           )}
 
@@ -236,20 +225,6 @@ export default function App() {
               logs={logs}
               onClearLogs={handleClearLogs}
               onRunDiagnostic={handleRunDiagnostic}
-            />
-          )}
-
-          {activeTab === 'integrations' && (
-            <IntegrationsView
-              connectedIntegrations={connectedIntegrations}
-              onToggleIntegration={handleToggleIntegration}
-            />
-          )}
-
-          {activeTab === 'settings' && (
-            <SettingsView
-              cloudEndpoint={cloudEndpoint}
-              setCloudEndpoint={setCloudEndpoint}
             />
           )}
         </main>

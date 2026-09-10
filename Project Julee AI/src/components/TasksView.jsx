@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, CheckCircle, Clock, AlertCircle, GitCommit, Globe, Terminal, Play, ArrowRight } from 'lucide-react';
+import { Cpu, CheckCircle, Clock, GitCommit, Globe, Play } from 'lucide-react';
 
 export default function TasksView({ tasks, onTriggerTask }) {
   return (
@@ -17,7 +17,9 @@ export default function TasksView({ tasks, onTriggerTask }) {
       }}>
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Cpu size={24} color="var(--primary-purple)" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Cpu size={24} color="var(--primary-purple)" style={{ display: 'block' }} />
+            </div>
             Autonomous Task Execution Queue
           </h2>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -28,8 +30,11 @@ export default function TasksView({ tasks, onTriggerTask }) {
         <button
           onClick={() => onTriggerTask('Full System Sync & Vercel Build')}
           className="btn-primary"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
         >
-          <Play size={16} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Play size={16} style={{ display: 'block' }} />
+          </div>
           <span>New Manual Run</span>
         </button>
       </div>
@@ -64,12 +69,13 @@ export default function TasksView({ tasks, onTriggerTask }) {
                     border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(139, 92, 246, 0.3)',
                     display: 'flex',
                     alignItems: 'center',
-                    justify: 'center'
+                    justify: 'center',
+                    flexShrink: 0
                   }}>
                     {isDone ? (
-                      <CheckCircle size={20} color="var(--primary-emerald)" />
+                      <CheckCircle size={20} color="var(--primary-emerald)" style={{ display: 'block' }} />
                     ) : (
-                      <Clock size={20} color="var(--primary-purple)" />
+                      <Clock size={20} color="var(--primary-purple)" style={{ display: 'block' }} />
                     )}
                   </div>
                   <div>
@@ -120,7 +126,8 @@ export default function TasksView({ tasks, onTriggerTask }) {
                         justify: 'center',
                         fontSize: '0.65rem',
                         color: '#000',
-                        fontWeight: 700
+                        fontWeight: 700,
+                        flexShrink: 0
                       }}>
                         {step.completed ? '✓' : sIdx + 1}
                       </div>
@@ -135,14 +142,18 @@ export default function TasksView({ tasks, onTriggerTask }) {
               {/* Related Metadata pills */}
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 {task.gitBranch && (
-                  <div className="glass-pill" style={{ fontSize: '0.75rem' }}>
-                    <GitCommit size={13} color="var(--primary-cyan)" />
+                  <div className="glass-pill" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <GitCommit size={13} color="var(--primary-cyan)" style={{ display: 'block' }} />
+                    </div>
                     <span>branch: {task.gitBranch}</span>
                   </div>
                 )}
                 {task.vercelDeployment && (
-                  <div className="glass-pill" style={{ fontSize: '0.75rem' }}>
-                    <Globe size={13} color="var(--primary-purple)" />
+                  <div className="glass-pill" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Globe size={13} color="var(--primary-purple)" style={{ display: 'block' }} />
+                    </div>
                     <span>{task.vercelDeployment}</span>
                   </div>
                 )}
