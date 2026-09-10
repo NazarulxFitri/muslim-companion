@@ -28,7 +28,7 @@ export default function App() {
     {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: "You can send me any instruction right here or from your mobile phone browser! Tell me what work to process, code to push, or deployment to run."
+      text: "Feel free to talk to me about work, brainstorm ideas, give instructions, or ask me to push code and deploy updates anytime!"
     }
   ]);
 
@@ -42,6 +42,7 @@ export default function App() {
 
   const handleSendMessage = (text) => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const lowerText = text.toLowerCase();
     
     // Add User Message
     const userMsg = { sender: 'user', time: timeStr, text };
@@ -50,9 +51,10 @@ export default function App() {
 
     // Simulate Agent execution & response
     setTimeout(() => {
-      const isDeployReq = text.toLowerCase().includes('deploy') || text.toLowerCase().includes('vercel');
-      const isPushReq = text.toLowerCase().includes('push') || text.toLowerCase().includes('git');
-      const isStatusReq = text.toLowerCase().includes('status') || text.toLowerCase().includes('uptime');
+      const isDeployReq = lowerText.includes('deploy') || lowerText.includes('vercel');
+      const isPushReq = lowerText.includes('push') || lowerText.includes('git');
+      const isStatusReq = lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health');
+      const isGreeting = lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('talk') || lowerText.includes('hey') || lowerText.includes('morning') || lowerText.includes('night');
 
       let replyText = '';
       let codeSnippet = null;
@@ -75,7 +77,7 @@ export default function App() {
 
       } else if (isPushReq) {
         replyText = `Got it! I committed the latest changes and pushed them straight to your GitHub repository on branch 'main'.`;
-        codeSnippet = `$ git add .\n$ git commit -m "feat: updates processed by Julee AI partner"\n$ git push origin main\nTo github.com:NazarulxFitri/muslim-companion.git\n   2a59e85..6e4871a  main -> main`;
+        codeSnippet = `$ git add .\n$ git commit -m "feat: updates processed by Julee AI partner"\n$ git push origin main\nTo github.com:NazarulxFitri/muslim-companion.git\n   552b195..9dde3ab  main -> main`;
         actionCard = {
           title: 'GitHub Commit & Push Complete',
           detail: 'Commit hash pushed to branch main.',
@@ -88,10 +90,16 @@ export default function App() {
         replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime. Memory usage: 42MB. Active GitHub & Vercel integrations verified.`;
         newLogCategory = 'SYSTEM';
         newLogMsg = `Performed 24/7 cloud health check. System operating normally.`;
-      } else {
-        replyText = `I have logged your request: "${text}". I am executing the workflow step by step on your cloud worker engine and will keep you updated!`;
+
+      } else if (isGreeting) {
+        replyText = `Hey there! 😊 I'm right here with you. What's on your mind today? Whether you want to brainstorm new project ideas, organize your schedule, or work on code, I'm ready to assist!`;
         newLogCategory = 'AGENT';
-        newLogMsg = `Executed user instruction: "${text}".`;
+        newLogMsg = `Received greeting / casual message: "${text}". Replied conversationally.`;
+
+      } else {
+        replyText = `I'm on it! I've received your note: "${text}". I'll process this for you right away. Is there anything specific you'd like me to focus on or deploy next?`;
+        newLogCategory = 'AGENT';
+        newLogMsg = `Processed user query: "${text}".`;
       }
 
       // Append terminal log
@@ -112,7 +120,7 @@ export default function App() {
       }]);
 
       setIsThinking(false);
-    }, 1200);
+    }, 1000);
   };
 
   const handleClearLogs = () => {
