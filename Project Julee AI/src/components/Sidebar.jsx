@@ -1,10 +1,9 @@
 import React from 'react';
-import { MessageSquare, Cpu, Terminal, Zap, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Terminal, Zap, ShieldCheck } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
+export default function Sidebar({ activeTab, setActiveTab }) {
   const navItems = [
     { id: 'chat', label: 'Julee Chat', icon: MessageSquare, badge: null },
-    { id: 'tasks', label: 'Active Tasks', icon: Cpu, badge: taskCount > 0 ? taskCount : null },
     { id: 'terminal', label: 'Terminal Logs', icon: Terminal, badge: 'Live' }
   ];
 

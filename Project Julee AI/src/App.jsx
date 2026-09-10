@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import ChatView from './components/ChatView';
-import TasksView from './components/TasksView';
 import TerminalView from './components/TerminalView';
 
 export default function App() {
@@ -30,36 +29,6 @@ export default function App() {
       sender: 'julee',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: "You can send me any instruction right here or from your mobile phone browser! Tell me what work to process, code to push, or deployment to run."
-    }
-  ]);
-
-  // Tasks state
-  const [tasks, setTasks] = useState([
-    {
-      id: 'TASK-8902',
-      name: 'GitHub Repository Sync & Code Audit',
-      startedAt: '10 mins ago',
-      status: 'Completed',
-      gitBranch: 'main',
-      vercelDeployment: 'project-julee-ai.vercel.app',
-      steps: [
-        { title: 'Checked out branch main from GitHub', completed: true },
-        { title: 'Ran code linting and structural check', completed: true },
-        { title: 'Verified zero build errors', completed: true }
-      ]
-    },
-    {
-      id: 'TASK-8901',
-      name: 'Vercel Production Build Deployment',
-      startedAt: '1 hour ago',
-      status: 'Completed',
-      gitBranch: 'main',
-      vercelDeployment: 'project-julee-ai.vercel.app',
-      steps: [
-        { title: 'Pushed commit 2a59e85 to GitHub', completed: true },
-        { title: 'Triggered Vercel webhook build target', completed: true },
-        { title: 'Deployment published & active on production SSL', completed: true }
-      ]
     }
   ]);
 
@@ -103,21 +72,6 @@ export default function App() {
         };
         newLogCategory = 'VERCEL';
         newLogMsg = `Triggered Vercel production deployment build #${taskId}. Status: 200 OK.`;
-        
-        // Add new task
-        setTasks(prev => [{
-          id: taskId,
-          name: 'Vercel Production Build & Deploy',
-          startedAt: 'Just now',
-          status: 'Completed',
-          gitBranch: 'main',
-          vercelDeployment: 'project-julee-ai.vercel.app',
-          steps: [
-            { title: 'Received Vercel deployment request', completed: true },
-            { title: 'Bundled production assets with Vite', completed: true },
-            { title: 'Uploaded artifacts to Vercel Edge CDN', completed: true }
-          ]
-        }, ...prev]);
 
       } else if (isPushReq) {
         replyText = `Got it! I committed the latest changes and pushed them straight to your GitHub repository on branch 'main'.`;
@@ -129,19 +83,6 @@ export default function App() {
         };
         newLogCategory = 'GIT';
         newLogMsg = `Git commit pushed to origin/main successfully.`;
-
-        setTasks(prev => [{
-          id: taskId,
-          name: 'GitHub Repository Push',
-          startedAt: 'Just now',
-          status: 'Completed',
-          gitBranch: 'main',
-          steps: [
-            { title: 'Staged changed files', completed: true },
-            { title: 'Created signed commit', completed: true },
-            { title: 'Pushed to origin/main', completed: true }
-          ]
-        }, ...prev]);
 
       } else if (isStatusReq) {
         replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime. Memory usage: 42MB. Active GitHub & Vercel integrations verified.`;
@@ -195,7 +136,6 @@ export default function App() {
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        taskCount={tasks.filter(t => t.status === 'Running').length}
       />
 
       {/* Main Content Area */}
@@ -210,13 +150,6 @@ export default function App() {
               messages={messages}
               onSendMessage={handleSendMessage}
               isThinking={isThinking}
-            />
-          )}
-
-          {activeTab === 'tasks' && (
-            <TasksView
-              tasks={tasks}
-              onTriggerTask={(name) => handleSendMessage(`Run task: ${name}`)}
             />
           )}
 
