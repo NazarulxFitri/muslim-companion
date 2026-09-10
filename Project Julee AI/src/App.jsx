@@ -70,7 +70,7 @@ export default function App() {
   const [logs, setLogs] = useState([
     { timestamp: '21:28:10', category: 'SYSTEM', message: 'Julee Cloud Engine initialized on node vps-us-east (Engine: Gemini 3.6 Flash Medium).' },
     { timestamp: '21:28:12', category: 'GIT', message: 'Authenticated with GitHub PAT for repo NazarulxFitri/muslim-companion.' },
-    { timestamp: '21:28:15', category: 'VERCEL', message: 'Vercel Deployment API connected. Domain target: julee-ai-companion.vercel.app.' },
+    { timestamp: '21:28:15', category: 'VERCEL', message: 'Vercel Deployment API connected. Production domain: project-julee-ai.vercel.app.' },
     { timestamp: '21:29:01', category: 'AGENT', message: 'Listening for incoming instructions from Julee Control Dashboard.' }
   ]);
 

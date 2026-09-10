@@ -10,7 +10,7 @@ const GithubIcon = ({ size = 24, color = "currentColor" }) => (
 
 export default function IntegrationsView({ connectedIntegrations, onToggleIntegration }) {
   const [githubRepo, setGithubRepo] = useState('NazarulxFitri/muslim-companion');
-  const [vercelDomain, setVercelDomain] = useState('julee-ai-companion.vercel.app');
+  const [vercelDomain, setVercelDomain] = useState('project-julee-ai.vercel.app');
   const [autoDeploy, setAutoDeploy] = useState(true);
 
   return (
