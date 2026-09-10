@@ -42,7 +42,7 @@ export default function App() {
 
   const handleSendMessage = (text) => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
     
     // Add User Message
     const userMsg = { sender: 'user', time: timeStr, text };
@@ -51,11 +51,6 @@ export default function App() {
 
     // Simulate Agent execution & response
     setTimeout(() => {
-      const isDeployReq = lowerText.includes('deploy') || lowerText.includes('vercel');
-      const isPushReq = lowerText.includes('push') || lowerText.includes('git');
-      const isStatusReq = lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health');
-      const isGreeting = lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('talk') || lowerText.includes('hey') || lowerText.includes('morning') || lowerText.includes('night');
-
       let replyText = '';
       let codeSnippet = null;
       let actionCard = null;
@@ -64,7 +59,14 @@ export default function App() {
 
       const taskId = `TASK-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      if (isDeployReq) {
+      // 1. Identity / Name questions
+      if (lowerText.includes('name') || lowerText.includes('who are you') || lowerText.includes('who r u')) {
+        replyText = "My name is Julee! ⚡ I'm your autonomous 24/7 AI partner built to assist you with your day-to-day routine, project development, GitHub pushes, and Vercel deployments.";
+        newLogCategory = 'AGENT';
+        newLogMsg = `Answered identity question from user.`;
+      } 
+      // 2. Deploy requests
+      else if (lowerText.includes('deploy') || lowerText.includes('vercel')) {
         replyText = `Understood! I triggered a fresh build and deployed your project directly to Vercel production. All health checks passed successfully!`;
         codeSnippet = `$ git push origin main\n$ vercel --prod\n> Building project...\n> Deployment complete: https://project-julee-ai.vercel.app`;
         actionCard = {
@@ -74,8 +76,9 @@ export default function App() {
         };
         newLogCategory = 'VERCEL';
         newLogMsg = `Triggered Vercel production deployment build #${taskId}. Status: 200 OK.`;
-
-      } else if (isPushReq) {
+      } 
+      // 3. Git Push requests
+      else if (lowerText.includes('push') || lowerText.includes('git')) {
         replyText = `Got it! I committed the latest changes and pushed them straight to your GitHub repository on branch 'main'.`;
         codeSnippet = `$ git add .\n$ git commit -m "feat: updates processed by Julee AI partner"\n$ git push origin main\nTo github.com:NazarulxFitri/muslim-companion.git\n   552b195..9dde3ab  main -> main`;
         actionCard = {
@@ -85,21 +88,30 @@ export default function App() {
         };
         newLogCategory = 'GIT';
         newLogMsg = `Git commit pushed to origin/main successfully.`;
-
-      } else if (isStatusReq) {
-        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime. Memory usage: 42MB. Active GitHub & Vercel integrations verified.`;
+      } 
+      // 4. System Status / Uptime
+      else if (lowerText.includes('status') || lowerText.includes('uptime') || lowerText.includes('health')) {
+        replyText = `System Health Report: Julee 24/7 Cloud Runner is active and operating with 99.99% uptime on Gemini 3.6 Flash (Medium). Memory usage: 42MB. Active GitHub & Vercel integrations verified.`;
         newLogCategory = 'SYSTEM';
         newLogMsg = `Performed 24/7 cloud health check. System operating normally.`;
-
-      } else if (isGreeting) {
-        replyText = `Hey there! 😊 I'm right here with you. What's on your mind today? Whether you want to brainstorm new project ideas, organize your schedule, or work on code, I'm ready to assist!`;
+      } 
+      // 5. Capabilities / What can you do
+      else if (lowerText.includes('what can you do') || lowerText.includes('capabilities') || lowerText.includes('help')) {
+        replyText = `Here's what I can do for you:\n\n1. 🚀 **Deploy to Vercel**: Automatically build and publish updates to production.\n2. 🐙 **GitHub Integration**: Push commits, manage branches, and sync your repository.\n3. ☁️ **24/7 Cloud Engine**: Keep working and executing tasks even when your laptop is turned off.\n4. 💡 **Brainstorm & Assist**: Help you with daily planning, code reviews, and work routines.`;
         newLogCategory = 'AGENT';
-        newLogMsg = `Received greeting / casual message: "${text}". Replied conversationally.`;
-
-      } else {
-        replyText = `I'm on it! I've received your note: "${text}". I'll process this for you right away. Is there anything specific you'd like me to focus on or deploy next?`;
+        newLogMsg = `Listed capabilities to user.`;
+      }
+      // 6. Greetings & Chit-chat
+      else if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey') || lowerText.includes('talk') || lowerText.includes('how are you')) {
+        replyText = `Hey there! 😊 I'm right here with you. What's on your mind today? Whether you want to talk, brainstorm ideas, or push code updates, I'm ready!`;
         newLogCategory = 'AGENT';
-        newLogMsg = `Processed user query: "${text}".`;
+        newLogMsg = `Replied conversationally to greeting.`;
+      } 
+      // 7. General conversational fallback
+      else {
+        replyText = `I hear you! I've noted: "${text}". I'm standing by to help you with anything you need—just let me know if you want me to write code, push to GitHub, or deploy updates!`;
+        newLogCategory = 'AGENT';
+        newLogMsg = `Processed message: "${text}".`;
       }
 
       // Append terminal log
@@ -120,7 +132,7 @@ export default function App() {
       }]);
 
       setIsThinking(false);
-    }, 1000);
+    }, 900);
   };
 
   const handleClearLogs = () => {
