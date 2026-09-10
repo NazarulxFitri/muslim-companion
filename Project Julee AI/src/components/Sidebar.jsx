@@ -80,6 +80,7 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
                   display: 'flex',
                   alignItems: 'center',
                   justify: 'space-between',
+                  gap: '12px',
                   width: '100%',
                   padding: '12px 14px',
                   borderRadius: 'var(--radius-sm)',
@@ -93,11 +94,11 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
                   textAlign: 'left'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', flexShrink: 0 }}>
                     <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} style={{ display: 'block' }} />
                   </div>
-                  <span>{item.label}</span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
                 </div>
                 {item.badge && (
                   <span style={{
@@ -107,7 +108,9 @@ export default function Sidebar({ activeTab, setActiveTab, taskCount }) {
                     background: item.badge === 'Live' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.2)',
                     color: item.badge === 'Live' ? 'var(--primary-emerald)' : 'var(--primary-purple)',
                     border: item.badge === 'Live' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(139, 92, 246, 0.3)',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    marginLeft: '12px',
+                    flexShrink: 0
                   }}>
                     {item.badge}
                   </span>
