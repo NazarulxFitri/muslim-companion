@@ -3,14 +3,14 @@ import { MessageSquare, Terminal, Zap, ShieldCheck } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   const navItems = [
-    { id: 'chat', label: 'Julee Chat', icon: MessageSquare, badge: null },
-    { id: 'terminal', label: 'Terminal Logs', icon: Terminal, badge: 'Live' }
+    { id: 'chat', label: 'Julee Chat', icon: MessageSquare },
+    { id: 'terminal', label: 'Terminal Logs', icon: Terminal }
   ];
 
   return (
-    <aside style={{
-      width: '260px',
-      background: 'rgba(9, 13, 22, 0.9)',
+    <aside className="app-sidebar" style={{
+      width: '240px',
+      background: 'rgba(9, 13, 22, 0.95)',
       backdropFilter: 'blur(20px)',
       borderRight: '1px solid var(--border-glass)',
       display: 'flex',
@@ -28,13 +28,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
-          padding: '0 8px 24px 8px',
+          padding: '0 8px 20px 8px',
           borderBottom: '1px solid var(--border-glass)',
           marginBottom: '20px'
         }}>
           <div style={{
-            width: '42px',
-            height: '42px',
+            width: '38px',
+            height: '38px',
             borderRadius: '12px',
             background: 'linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-cyan) 100%)',
             display: 'flex',
@@ -44,24 +44,24 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             position: 'relative',
             flexShrink: 0
           }}>
-            <Zap size={22} color="#ffffff" style={{ display: 'block' }} />
+            <Zap size={20} color="#ffffff" style={{ display: 'block' }} />
             <div style={{
               position: 'absolute',
               bottom: '-2px',
               right: '-2px',
-              width: '10px',
-              height: '10px',
+              width: '9px',
+              height: '9px',
               borderRadius: '50%',
               backgroundColor: 'var(--primary-emerald)',
               border: '2px solid #07090e'
             }} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.02em', color: '#fff' }}>
+            <div style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em', color: '#fff' }}>
               Julee AI
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--primary-cyan)', fontWeight: 500 }}>
-              Partner & Assistant v2.0
+            <div style={{ fontSize: '0.725rem', color: 'var(--primary-cyan)', fontWeight: 500 }}>
+              24/7 AI Partner
             </div>
           </div>
         </div>
@@ -78,10 +78,9 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justify: 'space-between',
                   gap: '12px',
                   width: '100%',
-                  padding: '12px 14px',
+                  padding: '10px 14px',
                   borderRadius: 'var(--radius-sm)',
                   border: isActive ? '1px solid rgba(139, 92, 246, 0.4)' : '1px solid transparent',
                   background: isActive ? 'linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.03) 100%)' : 'transparent',
@@ -93,49 +92,23 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                   textAlign: 'left'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', flexShrink: 0 }}>
-                    <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} style={{ display: 'block' }} />
-                  </div>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', flexShrink: 0 }}>
+                  <Icon size={18} color={isActive ? 'var(--primary-cyan)' : 'var(--text-muted)'} style={{ display: 'block' }} />
                 </div>
-                {item.badge && (
-                  <span style={{
-                    fontSize: '0.7rem',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    background: item.badge === 'Live' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(139, 92, 246, 0.2)',
-                    color: item.badge === 'Live' ? 'var(--primary-emerald)' : 'var(--primary-purple)',
-                    border: item.badge === 'Live' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(139, 92, 246, 0.3)',
-                    fontWeight: 600,
-                    marginLeft: '12px',
-                    flexShrink: 0
-                  }}>
-                    {item.badge}
-                  </span>
-                )}
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
       </div>
 
-      {/* Cloud Runner Card */}
-      <div className="glass-panel" style={{ padding: '14px', borderRadius: 'var(--radius-sm)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+      {/* Footer Info */}
+      <div className="glass-panel" style={{ padding: '12px', borderRadius: 'var(--radius-sm)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ShieldCheck size={16} color="var(--primary-emerald)" style={{ display: 'block' }} />
           </div>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#fff' }}>24/7 Cloud Engine</span>
-        </div>
-        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
-          Active on Cloud Server. Operates even when your laptop is powered off.
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px' }}>
-          <div className="status-dot online" />
-          <span style={{ fontSize: '0.7rem', color: 'var(--primary-emerald)', fontWeight: 500 }}>
-            Connected & Syncing
-          </span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#fff' }}>24/7 Cloud Active</span>
         </div>
       </div>
     </aside>
